@@ -74,6 +74,7 @@
 
 import numpy as np
 import os, os.path
+from sys import stdout 
 
 # ======================== Beat Tracking Evaluation Paramaters ========================
 #
@@ -152,7 +153,7 @@ downbeat_numBeatsPerBar = 4
 # (Python implementation by Adam Stark 2011-2012)
 #
 # =====================================================================================
-def evaluate_db(annsList,beatsList,measures = 'all',doCI = False):
+def evaluate_db(annsList,beatsList,measures = 'all',doCI = False, printing=False):
     
         
     # if annotations and beats are not lists of the same length
@@ -177,13 +178,16 @@ def evaluate_db(annsList,beatsList,measures = 'all',doCI = False):
 
     results = {}
     results['scores'] = {}
+    results['scores_mean'] = {}
+    results['scores_conf'] = {}
     results['beats'] = beatsList
     results['anns'] = annsList
 
+
     # for each file
     for i in range(numFiles):
-        print "Evaluating file ",(i+1)
-            
+        stdout.write("Evaluating file {}\r".format(i+1))
+        stdout.flush()
         ################### if we are calculating all measures #################
         """
         if ('all' in measures):
@@ -237,16 +241,17 @@ def evaluate_db(annsList,beatsList,measures = 'all',doCI = False):
                 #     scores_mean = np.average(scores,axis=0)
                 
 
-    print " "
-    print "--------------- Results ------------------"                
+
+    if printing: print "--------------- Results ------------------"                
    
     if ('fMeasure' in measures) or ('all' in measures):
 
         results['scores']['fMeasure'] = np.array(scores_fMeasure)
         
         # print out fMeasure
-        print "fMeasure:  %.2f" % np.array(scores_fMeasure).mean()
+        if printing: print "fMeasure:  %.2f" % np.array(scores_fMeasure).mean()
 
+        results['scores_mean']['fMeasure'] = np.array(scores_fMeasure).mean()
 
 
     if ('cemgilAcc' in measures) or ('all' in measures):
@@ -254,7 +259,8 @@ def evaluate_db(annsList,beatsList,measures = 'all',doCI = False):
         results['scores']['cemgilAcc'] = np.array(scores_cemgilAcc)
         
         # print out cemgilAcc
-        print "cemgilAcc:  %.2f" % np.array(scores_cemgilAcc).mean()
+        if printing: print "cemgilAcc:  %.2f" % np.array(scores_cemgilAcc).mean()
+        results['scores_mean']['cemgilAcc'] = np.array(scores_cemgilAcc).mean()
 
 
 
@@ -263,8 +269,8 @@ def evaluate_db(annsList,beatsList,measures = 'all',doCI = False):
         results['scores']['gotoAcc'] = np.array(scores_gotoAcc)
         
         # print out gotoAcc
-        print "gotoAcc:  %.2f" % np.array(scores_gotoAcc).mean()
-
+        if printing: print "gotoAcc:  %.2f" % np.array(scores_gotoAcc).mean()
+        results['scores_mean']['gotoAcc'] = np.array(scores_gotoAcc).mean()
 
 
     if ('pScore' in measures) or ('all' in measures):
@@ -272,8 +278,8 @@ def evaluate_db(annsList,beatsList,measures = 'all',doCI = False):
         results['scores']['pScore'] = np.array(scores_pScore)
         
         # print out pScore
-        print "pScore:  %.2f" % np.array(scores_pScore).mean()
-
+        if printing: print "pScore:  %.2f" % np.array(scores_pScore).mean()
+        results['scores_mean']['pScore'] = np.array(scores_pScore).mean()
 
 
     if ('continuity' in measures) or ('all' in measures):
@@ -289,66 +295,83 @@ def evaluate_db(annsList,beatsList,measures = 'all',doCI = False):
         r_cmlT = np.array(scores_cmlT).mean()
         r_amlC = np.array(scores_amlC).mean()
         r_amlT = np.array(scores_amlT).mean()        
-        print "cmlC:  %.2f   cmlT:  %.2f   amlC:  %.2f   amlT:  %.2f" % (r_cmlC,r_cmlT,r_amlC,r_amlT)
+        if printing: print "cmlC:  %.2f   cmlT:  %.2f   amlC:  %.2f   amlT:  %.2f" % (r_cmlC,r_cmlT,r_amlC,r_amlT)
+
+        results['scores_mean']['cmlC'] = r_cmlC
+        results['scores_mean']['cmlT'] = r_cmlT
+        results['scores_mean']['amlC'] = r_amlC
+        results['scores_mean']['amlT'] = r_amlT
 
     if ('infoGain' in measures) or ('all' in measures):
         
         results['scores']['infoGain'] = np.array(scores_infoGain)
         
         # print out infoGain
-        print "infoGain:  %.2f" % np.array(scores_infoGain).mean()                    
+        if printing: print "infoGain:  %.2f" % np.array(scores_infoGain).mean()
+        results['scores_mean']['infoGain'] = np.array(scores_infoGain).mean()                   
                 
     if ('amlCem' in measures) or ('all' in measures):
         
         results['scores']['amlCem'] = np.array(scores_amlCem)
         
         # print out amlCem
-        print "amlCem:  %.2f" % np.array(scores_amlCem).mean()
+        if printing: print "amlCem:  %.2f" % np.array(scores_amlCem).mean()
+        results['scores_mean']['amlCem'] = np.array(scores_amlCem).mean() 
     
-    print "------------------------------------------"
-    print " "
+    if printing: print "------------------------------------------"
+    if printing: print " "
 
 
 
     # print confifence intervals
     if (doCI):
         
-        print " "
-        print "---------- Confidence Intervals ----------" 
+        if printing: print " "
+        if printing: print "---------- Confidence Intervals ----------" 
         
         if ('fMeasure' in measures) or ('all' in measures):
             [lci,uci] = confidenceIntervals(np.array(scores_fMeasure))
-            print "fMeasure: [%.2f,%.2f]" % (lci,uci) 
+            if printing: print "fMeasure: [%.2f,%.2f]" % (lci,uci) 
+            results['scores_conf']['fMeasure']= np.array([lci,uci])
 
         if ('cemgilAcc' in measures) or ('all' in measures):
             [lci,uci] = confidenceIntervals(np.array(scores_cemgilAcc))
-            print "cemgilAcc: [%.2f,%.2f]" % (lci,uci) 
+            if printing: print "cemgilAcc: [%.2f,%.2f]" % (lci,uci) 
+            results['scores_conf']['cemgilAcc']= np.array([lci,uci])
 
         if ('gotoAcc' in measures) or ('all' in measures):
             [lci,uci] = confidenceIntervals(np.array(scores_gotoAcc))
-            print "gotoAcc: [%.2f,%.2f]" % (lci,uci) 
+            if printing: print "gotoAcc: [%.2f,%.2f]" % (lci,uci) 
+            results['scores_conf']['gotoAcc']= np.array([lci,uci])
 
         if ('pScore' in measures) or ('all' in measures):
             [lci,uci] = confidenceIntervals(np.array(scores_pScore))
-            print "pScore: [%.2f,%.2f]" % (lci,uci) 
+            if printing: print "pScore: [%.2f,%.2f]" % (lci,uci) 
+            results['scores_conf']['pScore']= np.array([lci,uci])
 
         if ('continuity' in measures) or ('all' in measures):      
             [l_cmlC,u_cmlC] = confidenceIntervals(np.array(scores_cmlC))
             [l_cmlT,u_cmlT] = confidenceIntervals(np.array(scores_cmlT))
             [l_amlC,u_amlC] = confidenceIntervals(np.array(scores_amlC))
             [l_amlT,u_amlT] = confidenceIntervals(np.array(scores_amlT))            
-            print "cmlC: [%.2f,%.2f] cmlT: [%.2f,%.2f] amlC: [%.2f,%.2f] amlT: [%.2f,%.2f]" % (l_cmlC,u_cmlC,l_cmlT,u_cmlT,l_amlC,u_amlC,l_amlT,u_amlT)
+            if printing: print "cmlC: [%.2f,%.2f] cmlT: [%.2f,%.2f] amlC: [%.2f,%.2f] amlT: [%.2f,%.2f]" % (l_cmlC,u_cmlC,l_cmlT,u_cmlT,l_amlC,u_amlC,l_amlT,u_amlT)
+            results['scores_conf']['cmlC']= np.array([l_cmlC,u_cmlC])
+            results['scores_conf']['cmlT']= np.array([l_cmlT,u_cmlT])
+            results['scores_conf']['amlC']= np.array([l_amlC,u_amlC])
+            results['scores_conf']['amlT']= np.array([l_amlT,u_amlT])
 
         if ('infoGain' in measures) or ('all' in measures):
             [lci,uci] = confidenceIntervals(np.array(scores_infoGain))
-            print "infoGain: [%.2f,%.2f]" % (lci,uci)                    
+            if printing: print "infoGain: [%.2f,%.2f]" % (lci,uci) 
+            results['scores_conf']['infoGain']= np.array([lci,uci])                   
 
         if ('amlCem' in measures) or ('all' in measures):
             [lci,uci] = confidenceIntervals(np.array(scores_amlCem))
-            print "amlCem: [%.2f,%.2f]" % (lci,uci)
+            if printing: print "amlCem: [%.2f,%.2f]" % (lci,uci)
+            results['scores_conf']['amlCem']= np.array([lci,uci])
 
-        print "------------------------------------------"
-        print " "
+        if printing: print "------------------------------------------"
+        if printing: print " "
 
     return results
 
@@ -855,7 +878,7 @@ def amlCem(anns,beats):
 #
 # =====================================================================================
 
-def fMeasure(anns,beats):
+def fMeasure(anns,beats, thresh=None):
     
     # remove beats and annotations that are within the first 5 seconds
     anns = anns[np.where(anns >= minBeatTime)]
@@ -881,7 +904,10 @@ def fMeasure(anns,beats):
 
 
     # get the threshold parameter for the tolerance window
-    delta = fMeasure_thresh;
+    if thresh is None:
+        delta = fMeasure_thresh;
+    else: 
+        delta = thresh
 
     # number of false positives
     fp = 0;
@@ -909,7 +935,8 @@ def fMeasure(anns,beats):
         # now remove these beats so it can't be counted again
         for k in range(len(beatstoadd)):
             beatsinwindow.append(beatstoadd[k])
-            beats = np.delete(beats,beatstoadd[k])
+            if beatstoadd[k] < beats.shape[0]:
+                beats = np.delete(beats,beatstoadd[k])
 
         if (len(beatsinwindow) == 0):      # no beats in window, therefore it's a false negative
             fn = fn +1;
@@ -1403,7 +1430,8 @@ def confidenceIntervals(scores):
         tmp = np.zeros(randomSamples.size)        
         
         for r in range(randomSamples.size):
-            tmp[r] = scores[randomSamples[r]]
+
+            tmp[r] = scores[randomSamples[r].astype(np.int)]
 
         meanVals[sample] = tmp.mean()
 
@@ -1415,8 +1443,8 @@ def confidenceIntervals(scores):
     first = np.ceil(numSamples*(1.-interval)/2.)
     last = np.ceil(numSamples*interval + numSamples*(1.-interval)/2.)
 
-    lci = meanVals[first]
-    uci = meanVals[last]
+    lci = meanVals[int(first)]
+    uci = meanVals[int(last)]
 
     return [lci,uci]
 
