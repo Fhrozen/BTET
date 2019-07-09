@@ -9,7 +9,7 @@ import sys
 
 if LooseVersion(sys.version) < LooseVersion('3.6'):
     raise RuntimeError(
-        'LocataWrapper requires Python>=3.6, '
+        'BTET requires Python>=3.6, '
         'but your Python is {}'.format(sys.version))
 if LooseVersion(pip.__version__) < LooseVersion('19'):
     raise RuntimeError(
@@ -31,7 +31,7 @@ extras_require = {k: v for k, v in requirements.items()
                   if k not in ['install', 'setup']}
 
 dirname = os.path.dirname(__file__)
-setup(name='beat_evaluation_toolbox',
+setup(name='BTET',
       version='0.1.0',
       url='http://github.com/Fhrozen/BTET',
       author='Nelson Yalta',
