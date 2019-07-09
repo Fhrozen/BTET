@@ -31,9 +31,9 @@ extras_require = {k: v for k, v in requirements.items()
                   if k not in ['install', 'setup']}
 
 dirname = os.path.dirname(__file__)
-setup(name='BeatTrackingEvaluationToolbox',
+setup(name='beat_evaluation_toolbox',
       version='0.1.0',
-      url='http://github.com/Fhrozen/locata_python',
+      url='http://github.com/Fhrozen/BTET',
       author='Nelson Yalta',
       author_email='nyalta21@gmail.com',
       description='Python implementation of a number of beat tracking evaluation methods',
